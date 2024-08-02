@@ -39,9 +39,11 @@ class MainViewModel {
                 paymentInterface: paymentInterface,
                 presentationMode: presentationMode
             )
-            
+
+            let str = String(decoding: response, as: UTF8.self)
+
             /// Use the Terminal API response
-            print(response)
+            print(str)
         }
         catch {
             print(error)
@@ -100,9 +102,39 @@ extension MainViewModel: PaymentServiceDelegate {
     func register(with setupToken: String) async throws -> String {
         /// Make a call to your backend to trigger a `/sessions` request, supplying the provided `setupToken`
         /// You should not call the `/sessions` endpoint from the POS app, only from your backend
-        guard let url = URL(string: "{ADDRESS_OF_YOUR_BACKEND_API}") else { return "" }
-        let request = URLRequest(url: url)
+        guard let url = URL(string: "https://checkout-test.adyen.com/checkout/possdk/v68/sessions") else { return "" }
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "content-type")
+        request.setValue("AQEmgXvdQM2NG2Yd7nqxnH12hOyUX4lYHpl5KF7hmrINRg8pw2A4qiYQwV1bDb7kfNy1WIxIIkxgBw==-8cCb3ZX9krRCTIAzJlvKwSs9F6Ydl61Ju6hmUv4qles=-i1iV$_jj9MHAI4_&XJv", forHTTPHeaderField: "X-API-Key")
+        request.httpMethod = "POST"
+        let parameters: [String: Any] = [
+            "merchantAccount" : "ChowbusUS",
+            "setupToken":setupToken,
+            "store": "r10538"
+        ]
+        
+        do {
+          // convert parameters to Data and assign dictionary to httpBody of request
+          request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
+        } catch let error {
+          print(error.localizedDescription)
+          return ""
+        }
+
+
         let (data, _) = try await URLSession.shared.data(for: request)
+//        let mockRsp =
+//"""
+//{
+//    "id": "df564a4b-2d1b-4555-baa7-b903476e9a22",
+//    "installationId": "BFCBF842-02DF-4D7F-AAED-F6535BFB5D48.352",
+//    "merchantAccount": "Lightspeed980POS",
+//    "sdkData": "eyJlbnZBdHRlc3Rwb3MiOiJhdHRlc3Rwb3MtdGVzdCIsImVudkNoZWNrb3V0cG9zIjoiY2hlY2tvdXRwb3MtdGVzdCIsImVudmlyb25tZW50IjoiY2hlY2tvdXRwb3MtdGVzdCIsImV4cGlyZXNBdCI6MTcyMjQ5Njg5OCwic2Vzc2lvblRva2VuIjoiZXlKaGJHY2lPaUpRVXpJMU5pSXNJbU5ySWpvaWRHVnpkRjgzVVV4UVdWUk1SRFJDUjFoVVRFZExXbFJLVmxNeVdrMU1UVVpKTmxCVU55SjkuZXlKaVlXTnJaVzVrVUhWaWJHbGpTMlY1SWpwN0ltTnlkaUk2SWxBdE1qVTJJaXdpYTNSNUlqb2lSVU1pTENKNElqb2laR1JsV0VwR1VFMVlNbUp1Ym1oYWEzRnBPRzlZYzFOQmFGWjZaazk2Tm0xaExYaDRVVU4yY0dseWR6MGlMQ0o1SWpvaVdVWkVaVlEzTnpOaVpIVm1RMnhGYlhBd2NHeHJabG95WTB0VFNHZG5aR2hEZDNCMVozRmhTSEF6TkQwaWZTd2lZblZ1Wkd4bFNXUWlPaUpqYjIwdVlXUjVaVzR1YzJGdGNHeGxMbUZ3Y0M1emQybG1kSFZwTGxOaGJYQnNaVUZ3Y0ZOM2FXWjBWVWtpTENKbGVIQnBjbVZ6UVhRaU9qRTNNakkwT1RZNE9UZ3NJbWx1YzNSaGJHeGhkR2x2Ymtsa0lqb2lRa1pEUWtZNE5ESXRNREpFUmkwMFJEZEdMVUZCUlVRdFJqWTFNelZDUmtJMVJEUTRMak0xTWlJc0ltMWxjbU5vWVc1MFFXTmpiM1Z1ZENJNklreHBaMmgwYzNCbFpXUTVPREJRVDFNaUxDSndkV0pzYVdOTFpYa2lPbnNpWTNKMklqb2lVQzB5TlRZaUxDSnJkSGtpT2lKRlF5SXNJbmdpT2lKUVJXMURWamRYVGtWUU1EaE9kbEJmYlROVmVUQXRNV1F4YlZGT1lXMTNOMjVKZVRCbVMzQnlRbXRSSWl3aWVTSTZJbVV6ZUdsa1JHVmZUMkkzTm1oeVZWRTRXbWxaYVdGVFJFcEVVMll4YmxCT1VpMU9WSEJSY21OS2VFMGlmU3dpYzNSdmNtVWlPaUpUVkRNeVEwMUxNakl6TWpJM056Vk1ORGhITkZNMFZrUklJbjAuamEzVTlydERZWVYwRkpEa01kaUI0RkladWFCcE90U3NGbGduSlY1UlMteXczQkJHSjZxQmZSV3cyNzBuM05fSnJmYmRXRkpFeW5Dc29UQkNjSUJJeGNYdndXSnI2VFJaVHo2bGlJYUlJalpiUXRjazl0bUJxcllGUnNwOWxDVEpvMmpNZUYzeTcwQ180VGNYWDc3RFBUdklncnhUU2tvbkxvMFJ2OHZBaTdJQWIzS2tVblo3aTQ5V2lRNDNpY2VBeFliQ2xIYkNTOUVSOVdUTHZFM082WEd6djhDT21oZUxaZ1ZvZE1lMGNEdnZMa2JXTnFOeDRhTTk3a0x0d29YaWtndTMtQThWUWxrUWJlcEQzR3BmWVZxN25DQlFzc0tJU1U5ZWhoS05pOU50RFpZdXBBYkRtY2hmaTBTTVBWQkdSQmRuT2FOemZndWpQQ0JoU2lDYmlnIn0=",
+//    "store": "ST32CMK22322775L48G4S4VDH"
+//}
+//"""
+//        let mockData = mockRsp.data(using: .utf8)
         let response = try JSONDecoder().decode(SessionsResponse.self, from: data)
         return response.sdkData
     }
