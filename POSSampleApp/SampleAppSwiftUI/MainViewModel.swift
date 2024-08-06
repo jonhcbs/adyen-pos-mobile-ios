@@ -80,12 +80,13 @@ class MainViewModel {
                 saleTransactionIdentifier: .init(
                     transactionIdentifier: UUID().uuidString,
                     date: .init()
-                )
+                ),
+                saleToAcquirerData: "ewogICAgIm1ldGFkYXRhIjogewogICAgICAgICJlbXBsb3llZU51bWJlciI6ICIxIiwKICAgICAgICAidGVzdCI6ICIxMjMiLAogICAgICAgICJ0ZXN0MSI6ICJ0ZXN0MSIsCiAgICAgICAgInRlc3QyIjogInRlc3QyIgogICAgfQp9"
             ),
             paymentTransaction: .init(
                 amounts: .init(
                     currency: "USD",
-                    requestedAmount: 50
+                    requestedAmount: 101
                 )
             )
         )
